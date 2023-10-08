@@ -36,9 +36,17 @@ async function run() {
     const reviewCollection = client.db("EcommerceDb").collection("review");
 
 
-    // tring to get menu collection 
+    // trying to get menu collection 
     app.get('/menu', async(req, res)=>{
         const result = await menuCollection.find().toArray();
+        res.send(result);
+
+
+    })
+    
+     // trying to get reviews collection 
+    app.get('/review', async(req, res)=>{
+        const result = await reviewCollection.find().toArray();
         res.send(result);
 
 
