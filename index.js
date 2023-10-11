@@ -34,6 +34,7 @@ async function run() {
      
     const menuCollection = client.db("EcommerceDb").collection("menu");
     const reviewCollection = client.db("EcommerceDb").collection("review");
+    const cartCollection = client.db("EcommerceDb").collection("carts");
 
 
     // trying to get menu collection 
@@ -49,6 +50,27 @@ async function run() {
         const result = await reviewCollection.find().toArray();
         res.send(result);
 
+
+    })
+
+    // cart collection related kaj
+
+    app.post('/carts', async(req, res) =>{
+      const item = req.body;
+      console.log(item);
+      const result = await cartCollection.insertOne(item);
+      res.send(result);
+    })
+
+    // get Cart api data 
+    app.get('/carts', async(req, res)=>{
+      const email = req.query.email;
+      if(!email){
+        return ([])
+      }
+      const query =  {email:email};
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
 
     })
 
