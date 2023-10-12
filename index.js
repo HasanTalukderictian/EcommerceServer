@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 4000;
 
@@ -32,9 +33,43 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
      
+    const usersCollection = client.db("EcommerceDb").collection("users");
     const menuCollection = client.db("EcommerceDb").collection("menu");
     const reviewCollection = client.db("EcommerceDb").collection("review");
     const cartCollection = client.db("EcommerceDb").collection("carts");
+
+   // trying to find users related apis 
+
+
+   app.get('/users', async(req, res) =>{
+     const result = await usersCollection.find().toArray();
+     res.send(result);
+   })
+
+   app.post('/users', async(req, res)=>{
+    const user = req.body;
+ 
+    const query ={email:user.email}
+    const existingUser = await usersCollection.findOne(query);
+
+    if(existingUser){
+      return ({message: " User Already Exists "})
+    }
+    const result = await usersCollection.insertOne(user);
+    res.send(result);
+
+
+   }) 
+
+   // access token 
+   app.post('/jwt', (req, res) => {
+    const user = req.body;
+    const token = jwt.sign(user, process.env.ACCESS_TOKEN_JWT, { expiresIn: '1h' });
+
+    res.send({token});
+
+
+   })
 
 
     // trying to get menu collection 
@@ -73,6 +108,22 @@ async function run() {
       res.send(result);
 
     })
+
+    // admin 
+    app.patch('/users/admin/:id', async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          role: `admin`
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter,updateDoc)
+      res.send(result);
+    })
+
+  
 
     // delete an item from cart 
 
