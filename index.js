@@ -28,6 +28,24 @@ const client = new MongoClient(uri, {
   }
 });
 
+ // verify jwt 
+const verifyJwt =(req, res, next) =>{
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+  // bearer token
+  const token = authorization.split(' ')[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_JWT, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -38,24 +56,19 @@ async function run() {
     const reviewCollection = client.db("EcommerceDb").collection("review");
     const cartCollection = client.db("EcommerceDb").collection("carts");
 
-    // verify jwt 
+   
+    /// Warning use verifyJwt before verify Admin
 
-    const verifyJwt =(req, res, next) =>{
-      const authorization = req.headers.authorization;
-      if (!authorization) {
-        return res.status(401).send({ error: true, message: 'unauthorized access' });
-      }
-      // bearer token
-      const token = authorization.split(' ')[1];
-    
-      jwt.verify(token, process.env.ACCESS_TOKEN_JWT, (err, decoded) => {
-        if (err) {
-          return res.status(401).send({ error: true, message: 'unauthorized access' })
-        }
-        req.decoded = decoded;
-        next();
-      })
+    const verifyAdmin = async(req, res, next) => {
+       const email = req.decoded.email;
+       const query = {email:email}
+       const user = await usersCollection.findOne(query);
+       if(user?.role !== 'admin'){
+        return res.status(401).send({error:true, message:"Forbidden Access"})
+       }
+       next();
     }
+   
 
 
 
@@ -64,7 +77,7 @@ async function run() {
     // trying to find users related apis 
 
 
-    app.get('/users',  async (req, res) => {
+    app.get('/users', verifyJwt, verifyAdmin,  async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
