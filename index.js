@@ -107,6 +107,13 @@ async function run() {
 
     })
 
+    app.post('/menu', verifyJwt, verifyAdmin, async(req, res)=>{
+        const newItem = req.body;
+        const result = await menuCollection.insertOne(newItem);
+        res.send(result)
+
+    })
+
 
     // trying to get menu collection 
     app.get('/menu', async (req, res) => {
