@@ -114,6 +114,14 @@ async function run() {
 
     })
 
+    // delete menu items 
+    app.delete('/menu/:id', verifyJwt, verifyAdmin, async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await menuCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
     // trying to get menu collection 
     app.get('/menu', async (req, res) => {
