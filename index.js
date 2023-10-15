@@ -58,6 +58,7 @@ async function run() {
     const menuCollection = client.db("EcommerceDb").collection("menu");
     const reviewCollection = client.db("EcommerceDb").collection("review");
     const cartCollection = client.db("EcommerceDb").collection("carts");
+    const paymentCollection = client.db("EcommerceDb").collection("payments");
 
    
     /// Warning use verifyJwt before verify Admin
@@ -220,14 +221,26 @@ async function run() {
     
 
     // create payment intent 
-    app.post('/create-payment-intent', async(req, res) =>{
+    app.post('/create-payment-intent', verifyJwt, async(req, res) =>{
       const {price} = req.body;
       const amount = price*100;
       const paymentIntent =await stripe.paymentIntents.create({
         amount: amount,
         currency:'usd',
         payment_method_types: ['card']
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
       })
+
+    })
+
+    // for storing  payment api 
+
+    app.post('/payments', verifyJwt, async(req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
 
     })
 
