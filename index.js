@@ -53,7 +53,6 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
     const usersCollection = client.db("EcommerceDb").collection("users");
     const menuCollection = client.db("EcommerceDb").collection("menu");
     const reviewCollection = client.db("EcommerceDb").collection("review");
@@ -96,7 +95,7 @@ async function run() {
         return ({ message: " User Already Exists " })
       }
       const result = await usersCollection.insertOne(user);
-      res.send(result);
+      res.json(result);
 
 
     })
@@ -170,6 +169,13 @@ async function run() {
       const result = await cartCollection.insertOne(item);
       res.send(result);
     })
+
+    // error  handling 
+    app.use((err, req, res, next) => {
+      console.error(err);
+      res.status(500).json({ error: 'Something went wrong' });
+    });
+    
 
     // get Cart api data 
     app.get('/carts', verifyJwt, async (req, res) => {
